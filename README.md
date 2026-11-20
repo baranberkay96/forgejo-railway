@@ -1,5 +1,7 @@
 # Deploy and Host Forgejo with Railway
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/forgejo-17-git-forge?referralCode=20H68q)
+
 Forgejo is a self-hosted software forge: Git hosting with pull requests, issues, wikis, code review, a package registry and CI integration, in one lightweight Go service. This community template runs Forgejo v17.0.2 with PostgreSQL 18, Git over HTTPS and SSH, Git LFS, and an administrator created for you on the first boot.
 
 ## About Hosting Forgejo
