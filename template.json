@@ -1,0 +1,279 @@
+{
+  "name": "Forgejo 17 Git Forge",
+  "description": "Self-hosted Git forge: repos, pull requests, issues, packages, SSH",
+  "category": "Other",
+  "tags": [
+    "forgejo",
+    "git",
+    "github-alternative",
+    "gitea",
+    "code-hosting",
+    "devops",
+    "ssh",
+    "postgres"
+  ],
+  "image": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/forgejo.svg",
+  "upstream": {
+    "forgejo": "codeberg.org/forgejo/forgejo:17.0.2@sha256:879f4f10a98e3e167b32cde5f7ae3af0163d50bfacf567559a27a0e95a95670c (Forgejo v17.0.2, released 2026-11-18)",
+    "postgres": "ghcr.io/railwayapp-templates/postgres-ssl:18.6@sha256:4fc833b43d2aaf6ecc9b18615f5533602b723a32d0e2efe2dae8ca0f7217c863 (= :18, checked 2026-11-20)",
+    "license": "Forgejo: GPL-3.0-or-later",
+    "checked": "2026-11-20"
+  },
+  "services": {
+    "Forgejo": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/forgejo.svg",
+      "source": {
+        "repo": "baranberkay96/forgejo-railway",
+        "rootDirectory": "/services/forgejo"
+      },
+      "startCommand": null,
+      "preDeployCommand": null,
+      "healthcheckPath": "/api/healthz",
+      "healthcheckTimeout": 900,
+      "restartPolicyType": "ALWAYS",
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": true,
+      "targetPort": 3000,
+      "tcpProxy": {
+        "port": 22
+      },
+      "volume": {
+        "mountPath": "/data"
+      },
+      "variables": {
+        "PORT": {
+          "defaultValue": "3000",
+          "description": "Port Forgejo's web server listens on (Railway's healthcheck and domain use it).",
+          "required": true
+        },
+        "FORGEJO_ADMIN_USERNAME": {
+          "defaultValue": "forgejo-admin",
+          "description": "First administrator, created on the first boot. 'admin' is reserved by Forgejo; an invalid name falls back to forgejo-admin.",
+          "required": true
+        },
+        "FORGEJO_ADMIN_PASSWORD": {
+          "defaultValue": "${{secret(24)}}",
+          "description": "Password of the first administrator (at least 8 characters). Used only when no admin exists, or with FORGEJO_ADMIN_PASSWORD_RESET=true.",
+          "required": true
+        },
+        "FORGEJO_ADMIN_EMAIL": {
+          "defaultValue": "admin@example.com",
+          "description": "E-mail of the first administrator (change it later in your profile).",
+          "required": true
+        },
+        "FORGEJO_ADMIN_PASSWORD_RESET": {
+          "defaultValue": "false",
+          "description": "true = set the admin's password to FORGEJO_ADMIN_PASSWORD on the next boot (recovery). Set back to false afterwards.",
+          "required": false
+        },
+        "FORGEJO__DEFAULT__APP_NAME": {
+          "defaultValue": "Forgejo",
+          "description": "Instance name shown in the page title and e-mails.",
+          "required": false
+        },
+        "FORGEJO__server__DOMAIN": {
+          "defaultValue": "${{RAILWAY_PUBLIC_DOMAIN}}",
+          "description": "Public hostname. Change it (and ROOT_URL) when you add a custom domain.",
+          "required": true
+        },
+        "FORGEJO__server__ROOT_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/",
+          "description": "Public URL used in links, clone URLs, OAuth and webhooks.",
+          "required": true
+        },
+        "FORGEJO__server__HTTP_PORT": {
+          "defaultValue": "3000",
+          "description": "Port of the web server (keep equal to PORT).",
+          "required": true
+        },
+        "FORGEJO__server__SSH_DOMAIN": {
+          "defaultValue": "${{RAILWAY_TCP_PROXY_DOMAIN}}",
+          "description": "Host shown in SSH clone URLs (Railway TCP proxy).",
+          "required": false
+        },
+        "FORGEJO__server__SSH_PORT": {
+          "defaultValue": "${{RAILWAY_TCP_PROXY_PORT}}",
+          "description": "Port shown in SSH clone URLs (Railway TCP proxy port).",
+          "required": false
+        },
+        "FORGEJO__server__SSH_LISTEN_PORT": {
+          "defaultValue": "22",
+          "description": "Port OpenSSH listens on inside the container (the TCP proxy targets 22).",
+          "required": false
+        },
+        "SSH_LISTEN_PORT": {
+          "defaultValue": "22",
+          "description": "Port the image's OpenSSH config is written with (keep 22, the TCP proxy target).",
+          "required": false
+        },
+        "FORGEJO__server__LFS_START_SERVER": {
+          "defaultValue": "true",
+          "description": "Serve Git LFS (objects are stored on the volume).",
+          "required": false
+        },
+        "FORGEJO__database__DB_TYPE": {
+          "defaultValue": "postgres",
+          "description": "Database type.",
+          "required": true
+        },
+        "FORGEJO__database__HOST": {
+          "defaultValue": "${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:${{Postgres.PGPORT}}",
+          "description": "Postgres host:port on the private network.",
+          "required": true
+        },
+        "FORGEJO__database__NAME": {
+          "defaultValue": "${{Postgres.POSTGRES_DB}}",
+          "description": "Database name.",
+          "required": true
+        },
+        "FORGEJO__database__USER": {
+          "defaultValue": "${{Postgres.POSTGRES_USER}}",
+          "description": "Database user.",
+          "required": true
+        },
+        "FORGEJO__database__PASSWD": {
+          "defaultValue": "${{Postgres.POSTGRES_PASSWORD}}",
+          "description": "Database password.",
+          "required": true
+        },
+        "FORGEJO__database__SSL_MODE": {
+          "defaultValue": "disable",
+          "description": "Postgres TLS mode (private network traffic is already encrypted by Railway).",
+          "required": false
+        },
+        "FORGEJO__database__DB_RETRIES": {
+          "defaultValue": "60",
+          "description": "Connection attempts at startup while Postgres boots (3 s apart).",
+          "required": false
+        },
+        "FORGEJO__security__INSTALL_LOCK": {
+          "defaultValue": "true",
+          "description": "Skip the web installer: everything is configured from these variables.",
+          "required": true
+        },
+        "FORGEJO__security__SECRET_KEY": {
+          "defaultValue": "${{secret(64)}}",
+          "description": "Encrypts 2FA secrets and other data in the database. Never change it after the first boot.",
+          "required": true
+        },
+        "FORGEJO__service__DISABLE_REGISTRATION": {
+          "defaultValue": "true",
+          "description": "true = only admins create accounts (Site administration > User accounts). false opens sign-up to anyone.",
+          "required": false
+        },
+        "FORGEJO__service__REQUIRE_SIGNIN_VIEW": {
+          "defaultValue": "false",
+          "description": "true = visitors must sign in to see anything, including public repositories.",
+          "required": false
+        },
+        "FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE": {
+          "defaultValue": "true",
+          "description": "Hide e-mail addresses of new users by default.",
+          "required": false
+        },
+        "FORGEJO__repository__DEFAULT_BRANCH": {
+          "defaultValue": "main",
+          "description": "Default branch of new repositories.",
+          "required": false
+        },
+        "FORGEJO__log__LEVEL": {
+          "defaultValue": "Info",
+          "description": "Log level (Trace, Debug, Info, Warn, Error).",
+          "required": false
+        },
+        "FORGEJO__mailer__ENABLED": {
+          "defaultValue": "false",
+          "description": "true + the FORGEJO__mailer__* settings to send e-mail (outbound SMTP needs Railway Pro; see README).",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "30",
+          "description": "Seconds Forgejo gets to finish requests and close the database on redeploy.",
+          "required": false
+        }
+      }
+    },
+    "Postgres": {
+      "icon": "https://devicons.railway.app/i/postgresql.svg",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18.6@sha256:4fc833b43d2aaf6ecc9b18615f5533602b723a32d0e2efe2dae8ca0f7217c863"
+      },
+      "startCommand": null,
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ALWAYS",
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/var/lib/postgresql/data"
+      },
+      "variables": {
+        "PGDATA": {
+          "defaultValue": "/var/lib/postgresql/data/pgdata",
+          "description": "Location where the database is initialized (inside the volume).",
+          "required": true
+        },
+        "PGHOST": {
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Private hostname of the database.",
+          "required": true
+        },
+        "PGPORT": {
+          "defaultValue": "5432",
+          "description": "Port to connect to Postgres.",
+          "required": true
+        },
+        "PGUSER": {
+          "defaultValue": "${{POSTGRES_USER}}",
+          "description": "User for the Railway Data panel.",
+          "required": true
+        },
+        "PGDATABASE": {
+          "defaultValue": "${{POSTGRES_DB}}",
+          "description": "Database for the Railway Data panel.",
+          "required": true
+        },
+        "PGPASSWORD": {
+          "defaultValue": "${{POSTGRES_PASSWORD}}",
+          "description": "Password for the Railway Data panel.",
+          "required": true
+        },
+        "POSTGRES_DB": {
+          "defaultValue": "forgejo",
+          "description": "Database created on the first boot (Forgejo's database).",
+          "required": true
+        },
+        "POSTGRES_USER": {
+          "defaultValue": "postgres",
+          "description": "Database superuser.",
+          "required": true
+        },
+        "POSTGRES_PASSWORD": {
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+          "description": "Database password, generated at deploy.",
+          "required": true
+        },
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{PGUSER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{PGDATABASE}}",
+          "description": "Private connection URL.",
+          "required": true
+        },
+        "SSL_CERT_DAYS": {
+          "defaultValue": "820",
+          "description": "Validity of the self-signed TLS certificate in days.",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Seconds Postgres gets to shut down cleanly on redeploy.",
+          "required": true
+        }
+      }
+    }
+  }
+}
